@@ -1,0 +1,9 @@
+#!/bin/sh
+# Launch the game immediately on tty1 autologin session.
+
+GAME_BIN="/opt/dots-boxes/dots_boxes"
+
+if [ "$(tty)" = "/dev/tty1" ] && [ -x "$GAME_BIN" ]; then
+    clear
+    exec "$GAME_BIN"
+fi
