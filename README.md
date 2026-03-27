@@ -1,6 +1,6 @@
 # Dots and Boxes (4x5)
 
-I made this project in C as a terminal game (no GUI).
+We made this project in C as a terminal game (no GUI).
 
 ## What it does
 
@@ -35,7 +35,7 @@ make gdb
 
 ## Alpine VM auto-start
 
-I included these files:
+We included these files:
 
 - `alpine/inittab.autologin.example`
 - `alpine/profile.autorun.example`
