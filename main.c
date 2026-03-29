@@ -38,5 +38,9 @@ int main() {
     print_board();
     print_winner();
 
+    printf("\nPress Enter to exit...\n");
+    discard_line();
+    getchar();
+
     return 0;
 }
