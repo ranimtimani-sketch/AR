@@ -1,53 +1,149 @@
-#include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 #include "game.h"
 #include "bot.h"
 
-void save_board_state(void) {
+typedef struct {
+    int horizontal[ROWS + 1][COLS];
+    int vertical[ROWS][COLS + 1];
+    char owners[ROWS][COLS];
+    int score_a;
+    int score_b;
+} BotBoard;
+
+static int rng_seeded = 0;
+
+static void seed_rng(void) {
+    if (!rng_seeded) {
+        srand((unsigned int)time(NULL));
+        rng_seeded = 1;
+    }
 }
 
-void restore_board_state(void) {
+static void copy_current_board(BotBoard *board) {
+    int row;
+    int col;
+
+    for (row = 0; row <= ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            board->horizontal[row][col] = get_edge_state(0, row, col);
+        }
+    }
+
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col <= COLS; col++) {
+            board->vertical[row][col] = get_edge_state(1, row, col);
+        }
+    }
+
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            board->owners[row][col] = get_box_owner(row, col);
+        }
+    }
+
+    board->score_a = get_score('A');
+    board->score_b = get_score('B');
 }
 
-Move* get_valid_moves(int* count) {
-    Move* moves = (Move*)malloc(sizeof(Move) * 100);
+static int board_box_sides(const BotBoard *board, int row, int col) {
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
+        return -1;
+    }
+
+    return board->horizontal[row][col] +
+           board->horizontal[row + 1][col] +
+           board->vertical[row][col] +
+           board->vertical[row][col + 1];
+}
+
+static int board_move_is_valid(const BotBoard *board, Move move) {
+    if (move.type == 0) {
+        return move.row >= 0 && move.row <= ROWS &&
+               move.col >= 0 && move.col < COLS &&
+               !board->horizontal[move.row][move.col];
+    }
+
+    if (move.type == 1) {
+        return move.row >= 0 && move.row < ROWS &&
+               move.col >= 0 && move.col <= COLS &&
+               !board->vertical[move.row][move.col];
+    }
+
+    return 0;
+}
+
+static int claim_box(BotBoard *board, int row, int col, char player) {
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
+        return 0;
+    }
+
+    if (board->owners[row][col] != ' ') {
+        return 0;
+    }
+
+    if (board_box_sides(board, row, col) != 4) {
+        return 0;
+    }
+
+    board->owners[row][col] = player;
+    if (player == 'A') {
+        board->score_a++;
+    } else {
+        board->score_b++;
+    }
+    return 1;
+}
+
+static int apply_move(BotBoard *board, Move move, char player) {
+    int claimed = 0;
+
+    if (!board_move_is_valid(board, move)) {
+        return -1;
+    }
+
+    if (move.type == 0) {
+        board->horizontal[move.row][move.col] = 1;
+        claimed += claim_box(board, move.row - 1, move.col, player);
+        claimed += claim_box(board, move.row, move.col, player);
+    } else {
+        board->vertical[move.row][move.col] = 1;
+        claimed += claim_box(board, move.row, move.col - 1, player);
+        claimed += claim_box(board, move.row, move.col, player);
+    }
+
+    return claimed;
+}
+
+static Move *get_valid_moves(const BotBoard *board, int *count) {
+    Move *moves;
+    int row;
+    int col;
+
+    moves = malloc(sizeof(Move) * ((ROWS + 1) * COLS + ROWS * (COLS + 1)));
     *count = 0;
 
-    for (int r = 0; r <= 4; r++) {
-        for (int c = 0; c < 5; c++) {
-            if (is_valid_edge(0, r, c)) {
-                moves[*count].type = 0;
-                moves[*count].row = r;
-                moves[*count].col = c;
+    for (row = 0; row <= ROWS; row++) {
+        for (col = 0; col < COLS; col++) {
+            Move move = {0, row, col};
+            if (board_move_is_valid(board, move)) {
+                moves[*count] = move;
                 (*count)++;
             }
         }
     }
 
-    for (int r = 0; r < 4; r++) {
-        for (int c = 0; c <= 5; c++) {
-            if (is_valid_edge(1, r, c)) {
-                moves[*count].type = 1;
-                moves[*count].row = r;
-                moves[*count].col = c;
+    for (row = 0; row < ROWS; row++) {
+        for (col = 0; col <= COLS; col++) {
+            Move move = {1, row, col};
+            if (board_move_is_valid(board, move)) {
+                moves[*count] = move;
                 (*count)++;
             }
         }
     }
 
     return moves;
-}
-
-int is_valid_move(int type, int r, int c) {
-    return is_valid_edge(type, r, c);
-}
-
-int evaluate_position(void) {
-    int bot_score = get_score('B');
-    int human_score = get_score('A');
-    int score_diff = bot_score - human_score;
-    return score_diff * 100;
 }
 
