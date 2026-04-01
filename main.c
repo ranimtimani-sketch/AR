@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "game.h"
+#include "bot.h"
 
 #define HUMAN_VS_HUMAN 0
 #define HUMAN_VS_BOT 1
@@ -84,9 +85,19 @@ int main() {
         
         if (game_mode == HUMAN_VS_BOT && player == 'B') {
             printf("Bot (Player B) is thinking...\n");
-            // TODO: Bot move will be implemented in Phase 2
-            // For now, placeholder for bot logic
-            printf("Bot difficulty: %d\n", bot_difficulty);
+            Move bot_move = get_bot_move(bot_difficulty);
+            
+            printf("Bot plays: type=%d, row=%d, col=%d\n", bot_move.type, bot_move.row, bot_move.col);
+            int result = make_move(bot_move.type, bot_move.row, bot_move.col, 'B');
+            
+            if (result == -1) {
+                printf("Bot made an invalid move! Trying another...\n");
+                continue;
+            }
+            
+            if (result == 0) {
+                player = 'A';
+            }
             continue;
         }
         
