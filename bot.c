@@ -197,7 +197,7 @@ static int minimax(BotBoard *board, int depth, int is_maximizing, int alpha, int
     }
 }
 
-Move get_bot_move(char difficulty) {
+Move get_bot_move(int difficulty) {
     BotBoard board;
     copy_current_board(&board);
     int count;

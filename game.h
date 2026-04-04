@@ -12,6 +12,8 @@ void print_winner();
 
 int get_score(char player);
 int is_valid_edge(int type, int r, int c);
+int get_edge_state(int type, int r, int c);
+char get_box_owner(int row, int col);
 void undo_last_move();
 typedef struct {
     int type;
