@@ -146,8 +146,7 @@ static Move *get_valid_moves(const BotBoard *board, int *count) {
 
     return moves;
 }
-
-static int is_game_over(const BotBoard *board) {
+static int board_is_game_over(const BotBoard *board) {
     int count;
     Move *moves = get_valid_moves(board, &count);
     free(moves);
@@ -155,80 +154,132 @@ static int is_game_over(const BotBoard *board) {
 }
 
 static int evaluate(const BotBoard *board, char player) {
-    int score = (player == 'A') ? board->score_a - board->score_b : board->score_b - board->score_a;
-    return score;
+    if (player == 'A') {
+        return board->score_a - board->score_b;
+    }
+
+    return board->score_b - board->score_a;
 }
 
-static int minimax(BotBoard *board, int depth, int is_maximizing, int alpha, int beta, char player) {
-    if (depth == 0 || is_game_over(board)) {
+static int minimax(BotBoard *board, int depth, int is_maximizing,
+                   int alpha, int beta, char player) {
+    int count;
+    Move *moves;
+    int index;
+
+    if (depth == 0 || board_is_game_over(board)) {
         return evaluate(board, player);
     }
 
-    int count;
-    Move *moves = get_valid_moves(board, &count);
+    moves = get_valid_moves(board, &count);
 
     if (is_maximizing) {
         int max_eval = INT_MIN;
-        for (int i = 0; i < count; i++) {
-            BotBoard new_board = *board;
-            int claimed = apply_move(&new_board, moves[i], player);
-            int new_depth = depth - (claimed > 0 ? 0 : 1);
-            int eval = minimax(&new_board, new_depth, 0, alpha, beta, player);
-            if (eval > max_eval) max_eval = eval;
-            if (eval > alpha) alpha = eval;
-            if (beta <= alpha) break;
+
+        for (index = 0; index < count; index++) {
+            BotBoard next = *board;
+            int claimed = apply_move(&next, moves[index], player);
+            int next_depth = depth - (claimed > 0 ? 0 : 1);
+            int value = minimax(&next, next_depth, 0, alpha, beta, player);
+
+            if (value > max_eval) {
+                max_eval = value;
+            }
+            if (value > alpha) {
+                alpha = value;
+            }
+            if (beta <= alpha) {
+                break;
+            }
         }
+
         free(moves);
         return max_eval;
-    } else {
+    }
+
+    {
         int min_eval = INT_MAX;
         char opponent = (player == 'A') ? 'B' : 'A';
-        for (int i = 0; i < count; i++) {
-            BotBoard new_board = *board;
-            int claimed = apply_move(&new_board, moves[i], opponent);
-            int new_depth = depth - (claimed > 0 ? 0 : 1);
-            int eval = minimax(&new_board, new_depth, 1, alpha, beta, player);
-            if (eval < min_eval) min_eval = eval;
-            if (eval < beta) beta = eval;
-            if (beta <= alpha) break;
+
+        for (index = 0; index < count; index++) {
+            BotBoard next = *board;
+            int claimed = apply_move(&next, moves[index], opponent);
+            int next_depth = depth - (claimed > 0 ? 0 : 1);
+            int value = minimax(&next, next_depth, 1, alpha, beta, player);
+
+            if (value < min_eval) {
+                min_eval = value;
+            }
+            if (value < beta) {
+                beta = value;
+            }
+            if (beta <= alpha) {
+                break;
+            }
         }
+
         free(moves);
         return min_eval;
     }
 }
 
-Move get_bot_move(int difficulty) {
-    BotBoard board;
-    copy_current_board(&board);
+static Move choose_random_move(const BotBoard *board) {
     int count;
-    Move *moves = get_valid_moves(&board, &count);
+    Move *moves = get_valid_moves(board, &count);
+    Move selected = {-1, -1, -1};
+
+    if (count > 0) {
+        selected = moves[rand() % count];
+    }
+
+    free(moves);
+    return selected;
+}
+
+static Move choose_minimax_move(const BotBoard *board, int depth) {
+    int count;
+    int index;
+    Move *moves;
+    Move best_move = {-1, -1, -1};
+    int best_value = INT_MIN;
+
+    moves = get_valid_moves(board, &count);
     if (count == 0) {
         free(moves);
-        Move invalid = {-1, -1, -1};
-        return invalid;
+        return best_move;
     }
 
-    if (difficulty == 'E') {
-        seed_rng();
-        int index = rand() % count;
-        Move move = moves[index];
-        free(moves);
-        return move;
-    }
+    best_move = moves[0];
 
-    int depth = (difficulty == 'M') ? 2 : 4;
-    int best_value = INT_MIN;
-    Move best_move = moves[0];
-    for (int i = 0; i < count; i++) {
-        BotBoard new_board = board;
-        int claimed = apply_move(&new_board, moves[i], 'B');
-        int value = minimax(&new_board, depth - (claimed > 0 ? 0 : 1), 0, INT_MIN, INT_MAX, 'B');
+    for (index = 0; index < count; index++) {
+        BotBoard next = *board;
+        int claimed = apply_move(&next, moves[index], 'B');
+        int next_depth = depth - (claimed > 0 ? 0 : 1);
+        int value = minimax(&next, next_depth, 0, INT_MIN, INT_MAX, 'B');
+
         if (value > best_value) {
             best_value = value;
-            best_move = moves[i];
+            best_move = moves[index];
         }
     }
+
     free(moves);
     return best_move;
 }
 
+Move get_bot_move(int difficulty) {
+    BotBoard board;
+
+    seed_rng();
+    copy_current_board(&board);
+
+    if (difficulty == 1) {
+        return choose_random_move(&board);
+    }
+
+    if (difficulty == 2) {
+        return choose_minimax_move(&board, 2);
+    }
+
+    return choose_minimax_move(&board, 4);
+}

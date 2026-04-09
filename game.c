@@ -154,6 +154,58 @@ int is_game_over() {
     return score_a + score_b == ROWS * COLS;
 }
 
+int get_score(char player) {
+    if (player == 'A') {
+        return score_a;
+    }
+
+    if (player == 'B') {
+        return score_b;
+    }
+
+    return -1;
+}
+
+int is_valid_edge(int type, int r, int c) {
+    if (type == 0) {
+        return r >= 0 && r <= ROWS && c >= 0 && c < COLS &&
+               !horizontal_edges[r][c];
+    }
+
+    if (type == 1) {
+        return r >= 0 && r < ROWS && c >= 0 && c <= COLS &&
+               !vertical_edges[r][c];
+    }
+
+    return 0;
+}
+
+int get_edge_state(int type, int r, int c) {
+    if (type == 0) {
+        if (r < 0 || r > ROWS || c < 0 || c >= COLS) {
+            return -1;
+        }
+        return horizontal_edges[r][c];
+    }
+
+    if (type == 1) {
+        if (r < 0 || r >= ROWS || c < 0 || c > COLS) {
+            return -1;
+        }
+        return vertical_edges[r][c];
+    }
+
+    return -1;
+}
+
+char get_box_owner(int row, int col) {
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
+        return '?';
+    }
+
+    return box_owners[row][col];
+}
+
 void print_winner() {
     printf("\nFinal score - A: %d, B: %d\n", score_a, score_b);
 
@@ -165,55 +217,5 @@ void print_winner() {
         printf("The game is a draw!\n");
     }
 }
-
-int get_score(char player) {
-    if (player == 'A') {
-        return score_a;
-    }
-    if (player == 'B') {
-        return score_b;
-    }
-    return 0;
-}
-
-int is_valid_edge(int type, int r, int c) {
-    if (type == 0) {
-        if (r < 0 || r > ROWS || c < 0 || c >= COLS) {
-            return 0;
-        }
-        return !horizontal_edges[r][c];
-    }
-    if (type == 1) {
-        if (r < 0 || r >= ROWS || c < 0 || c > COLS) {
-            return 0;
-        }
-        return !vertical_edges[r][c];
-    }
-    return 0;
-}
-
-int get_edge_state(int type, int r, int c) {
-    if (type == 0) {
-        if (r < 0 || r > ROWS || c < 0 || c >= COLS) {
-            return 0;
-        }
-        return horizontal_edges[r][c];
-    }
-    if (type == 1) {
-        if (r < 0 || r >= ROWS || c < 0 || c > COLS) {
-            return 0;
-        }
-        return vertical_edges[r][c];
-    }
-    return 0;
-}
-
-char get_box_owner(int row, int col) {
-    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
-        return ' ';
-    }
-    return box_owners[row][col];
-}
-
 void undo_last_move() {
 }

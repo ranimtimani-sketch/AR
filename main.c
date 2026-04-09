@@ -84,16 +84,22 @@ int main() {
         printf("Player %c turn\n", player);
         
         if (game_mode == HUMAN_VS_BOT && player == 'B') {
+            Move bot_move;
+            int result;
+
             printf("Bot (Player B) is thinking...\n");
-            Move bot_move = get_bot_move(bot_difficulty);
-            
-            printf("Bot plays: type=%d, row=%d, col=%d\n", bot_move.type, bot_move.row, bot_move.col);
-            int result = make_move(bot_move.type, bot_move.row, bot_move.col, 'B');
+            bot_move = get_bot_move(bot_difficulty);
+            printf("Bot plays: type=%d, row=%d, col=%d\n",
+                   bot_move.type, bot_move.row, bot_move.col);
+
+            result = make_move(bot_move.type, bot_move.row, bot_move.col, 'B');
             
             if (result == -1) {
                 printf("Bot made an invalid move! Trying another...\n");
                 continue;
             }
+
+            print_board();
             
             if (result == 0) {
                 player = 'A';
@@ -115,6 +121,8 @@ int main() {
             printf("Invalid move! Try again.\n");
             continue;
         }
+
+        print_board();
 
         if (result == 0) {
             player = (player == 'A') ? 'B' : 'A';
