@@ -105,7 +105,7 @@ int main() {
                 player = 'A';
             }
             continue;
-        }
+        } 
         
         
         printf("Enter move (type 0=H,1=V row col): ");

@@ -180,7 +180,9 @@ static int minimax(BotBoard *board, int depth, int is_maximizing,
             BotBoard next = *board;
             int claimed = apply_move(&next, moves[index], player);
             int next_depth = depth - (claimed > 0 ? 0 : 1);
-            int value = minimax(&next, next_depth, 0, alpha, beta, player);
+            int next_is_maximizing = (claimed > 0) ? 1 : 0;
+            int value = minimax(&next, next_depth, next_is_maximizing,
+                                alpha, beta, player);
 
             if (value > max_eval) {
                 max_eval = value;
@@ -205,7 +207,9 @@ static int minimax(BotBoard *board, int depth, int is_maximizing,
             BotBoard next = *board;
             int claimed = apply_move(&next, moves[index], opponent);
             int next_depth = depth - (claimed > 0 ? 0 : 1);
-            int value = minimax(&next, next_depth, 1, alpha, beta, player);
+            int next_is_maximizing = (claimed > 0) ? 0 : 1;
+            int value = minimax(&next, next_depth, next_is_maximizing,
+                                alpha, beta, player);
 
             if (value < min_eval) {
                 min_eval = value;
@@ -255,7 +259,9 @@ static Move choose_minimax_move(const BotBoard *board, int depth) {
         BotBoard next = *board;
         int claimed = apply_move(&next, moves[index], 'B');
         int next_depth = depth - (claimed > 0 ? 0 : 1);
-        int value = minimax(&next, next_depth, 0, INT_MIN, INT_MAX, 'B');
+        int next_is_maximizing = (claimed > 0) ? 1 : 0;
+        int value = minimax(&next, next_depth, next_is_maximizing,
+                            INT_MIN, INT_MAX, 'B');
 
         if (value > best_value) {
             best_value = value;

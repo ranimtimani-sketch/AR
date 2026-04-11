@@ -70,7 +70,7 @@ Uses a deeper minimax search with alpha-beta pruning:
 
 - Simulates every legal move
 - Searches deeper than medium mode
-- Models extra turns after captures
+- Models extra turns after captures by keeping the same side to move
 - Chooses the move with the best guaranteed evaluation found by the search
 
 ### Complexity of the advanced strategy

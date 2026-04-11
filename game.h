@@ -8,14 +8,6 @@ typedef struct {
     int type;
     int row;
     int col;
-    char player;
-    int boxes_claimed;
-} MoveHistory;
-
-typedef struct {
-    int type;
-    int row;
-    int col;
 } Move;
 
 void init_game();
