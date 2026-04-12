@@ -102,4 +102,4 @@ sudo sh alpine/setup_autostart.sh
 sudo reboot
 ```
 
-The setup script configures automatic login on `tty1` and launches the game immediately from the user's `.profile`, so the VM opens straight into the game without a manual username/password login prompt.
+
