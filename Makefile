@@ -9,7 +9,7 @@ SRC := main.c game.c bot.c
 all: $(TARGET)
 
 $(TARGET): $(SRC) game.h bot.h
-	cc -Wall -Wextra -Wpedantic -std=c11 main.c game.c bot.c -o dots_boxes
+	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
 debug: CFLAGS += $(DBGFLAGS)
 debug: clean $(TARGET)

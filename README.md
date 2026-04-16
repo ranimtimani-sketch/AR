@@ -26,8 +26,7 @@ Terminal-based Dots and Boxes written in C with both human-vs-human and human-vs
 ## Build and run
 
 ```sh
-make
-./dots_boxes
+make run
 ```
 
 ## Debugging
