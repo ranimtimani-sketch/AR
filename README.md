@@ -8,6 +8,7 @@ Terminal-based Dots and Boxes written in C with both human-vs-human and human-vs
 - Human vs human mode
 - Human vs bot mode with `Easy`, `Medium`, and `Hard` difficulty levels
 - Bot always chooses from valid legal moves
+- `q` command to quit from menus or during a turn
 - Updated board and score display after every move
 - Final score and winner announcement when the board is full
 - Multi-file C project with a `Makefile`

@@ -9,10 +9,20 @@
 #define BOT_MEDIUM 2
 #define BOT_HARD 3
 
-static void discard_line(void) {
-    int ch;
-    while ((ch = getchar()) != '\n' && ch != EOF) {
+static int read_line(char *buffer, int size) {
+    if (fgets(buffer, size, stdin) == NULL) {
+        return 0;
     }
+
+    return 1;
+}
+
+static int is_quit_command(const char *line) {
+    while (*line == ' ' || *line == '\t') {
+        line++;
+    }
+
+    return line[0] == 'q' || line[0] == 'Q';
 }
 
 static void print_menu(void) {
@@ -21,21 +31,31 @@ static void print_menu(void) {
     printf("========================================\n");
     printf("1. Play vs Human\n");
     printf("2. Play vs Bot\n");
+    printf("q. Quit\n");
     printf("========================================\n");
 }
 
 static int select_game_mode(void) {
     int choice;
+    char line[64];
     
     while (1) {
         print_menu();
-        printf("Enter your choice (1 or 2): ");
-        if (scanf("%d", &choice) != 1) {
+        printf("Enter your choice (1, 2, or q): ");
+        fflush(stdout);
+
+        if (!read_line(line, sizeof(line))) {
+            return -1;
+        }
+
+        if (is_quit_command(line)) {
+            return -1;
+        }
+
+        if (sscanf(line, "%d", &choice) != 1) {
             printf("Invalid input! Please enter 1 or 2.\n");
-            discard_line();
             continue;
         }
-        discard_line();
         
         if (choice >= 1 && choice <= 2) {
             return choice - 1;
@@ -46,6 +66,7 @@ static int select_game_mode(void) {
 
 static int select_difficulty(void) {
     int difficulty;
+    char line[64];
     
     printf("\n========================================\n");
     printf("       SELECT BOT DIFFICULTY LEVEL\n");
@@ -53,16 +74,25 @@ static int select_difficulty(void) {
     printf("1. Easy\n");
     printf("2. Medium\n");
     printf("3. Hard\n");
+    printf("q. Quit\n");
     printf("========================================\n");
     
     while (1) {
-        printf("Enter your choice (1, 2, or 3): ");
-        if (scanf("%d", &difficulty) != 1) {
+        printf("Enter your choice (1, 2, 3, or q): ");
+        fflush(stdout);
+
+        if (!read_line(line, sizeof(line))) {
+            return -1;
+        }
+
+        if (is_quit_command(line)) {
+            return -1;
+        }
+
+        if (sscanf(line, "%d", &difficulty) != 1) {
             printf("Invalid input! Please enter 1, 2, or 3.\n");
-            discard_line();
             continue;
         }
-        discard_line();
         
         if (difficulty >= 1 && difficulty <= 3) {
             return difficulty;
@@ -75,7 +105,19 @@ int main() {
     int type, r, c;
     char player = 'A';
     int game_mode = select_game_mode();
-    int bot_difficulty = (game_mode == HUMAN_VS_BOT) ? select_difficulty() : 0;
+    int bot_difficulty;
+    char line[64];
+
+    if (game_mode == -1) {
+        printf("Goodbye!\n");
+        return 0;
+    }
+
+    bot_difficulty = (game_mode == HUMAN_VS_BOT) ? select_difficulty() : 0;
+    if (bot_difficulty == -1) {
+        printf("Goodbye!\n");
+        return 0;
+    }
 
     init_game();
 
@@ -108,10 +150,21 @@ int main() {
         } 
         
         
-        printf("Enter move (type 0=H,1=V row col): ");
-        if (scanf("%d %d %d", &type, &r, &c) != 3) {
+        printf("Enter move (type 0=H,1=V row col, or q to quit): ");
+        fflush(stdout);
+
+        if (!read_line(line, sizeof(line))) {
+            printf("\nGoodbye!\n");
+            return 0;
+        }
+
+        if (is_quit_command(line)) {
+            printf("Goodbye!\n");
+            return 0;
+        }
+
+        if (sscanf(line, "%d %d %d", &type, &r, &c) != 3) {
             printf("Invalid input! Use: type row col\n");
-            discard_line();
             continue;
         }
 
@@ -133,7 +186,6 @@ int main() {
     print_winner();
 
     printf("\nPress Enter to exit...\n");
-    discard_line();
     getchar();
 
     return 0;
