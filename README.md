@@ -101,4 +101,15 @@ sudo sh alpine/setup_autostart.sh
 sudo reboot
 ```
 
+After pulling new changes in the Alpine VM, rebuild and replace the
+autostarted binary:
+
+```sh
+git pull origin main
+make clean
+make
+sudo cp dots_boxes /opt/dots-boxes/dots_boxes
+sudo reboot
+```
+
 
