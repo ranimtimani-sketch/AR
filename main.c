@@ -10,8 +10,19 @@
 #define BOT_HARD 3
 
 static int read_line(char *buffer, int size) {
+    int index;
+
     if (fgets(buffer, size, stdin) == NULL) {
         return 0;
+    }
+
+    for (index = 0; buffer[index] != '\0'; index++) {
+        if (buffer[index] == '\n') {
+            return 1;
+        }
+    }
+
+    while ((index = getchar()) != '\n' && index != EOF) {
     }
 
     return 1;
@@ -101,7 +112,7 @@ static int select_difficulty(void) {
     }
 }
 
-int main() {
+int main(void) {
     int type, r, c;
     char player = 'A';
     int game_mode = select_game_mode();
@@ -141,8 +152,6 @@ int main() {
                 continue;
             }
 
-            print_board();
-            
             if (result == 0) {
                 player = 'A';
             }
@@ -175,8 +184,6 @@ int main() {
             continue;
         }
 
-        print_board();
-
         if (result == 0) {
             player = (player == 'A') ? 'B' : 'A';
         }
@@ -184,9 +191,6 @@ int main() {
 
     print_board();
     print_winner();
-
-    printf("\nPress Enter to exit...\n");
-    getchar();
 
     return 0;
 }
