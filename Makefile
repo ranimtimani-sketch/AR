@@ -2,14 +2,15 @@ CC ?= cc
 CFLAGS ?= -Wall -Wextra -Wpedantic -std=c11
 DBGFLAGS ?= -g -O0
 TARGET := dots_boxes
-SRC := main.c game.c bot.c ui.c
+LDLIBS ?= -pthread
+SRC := main.c game.c bot.c ui.c network.c
 
 .PHONY: all clean debug run valgrind gdb
 
 all: $(TARGET)
 
-$(TARGET): $(SRC) game.h bot.h ui.h
-	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
+$(TARGET): $(SRC) game.h bot.h ui.h network.h
+	$(CC) $(CFLAGS) $(SRC) -o $(TARGET) $(LDLIBS)
 
 debug: CFLAGS += $(DBGFLAGS)
 debug: clean $(TARGET)

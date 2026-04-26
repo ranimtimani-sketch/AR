@@ -1,12 +1,14 @@
 # Dots and Boxes (4x5)
 
-Terminal-based Dots and Boxes written in C with both human-vs-human and human-vs-bot modes.
+Terminal-based Dots and Boxes written in C with local and network multiplayer support for Linux terminal environments.
 
 ## Features
 
 - 4x5 board rendered directly in the terminal
 - Human vs human mode
 - Human vs bot mode with `Easy`, `Medium`, and `Hard` difficulty levels
+- Host/join network multiplayer mode for two different machines
+- Background receiver thread protected with `pthread_mutex_t` and `pthread_cond_t`
 - Bot always chooses from valid legal moves
 - `q` command to quit from menus or during a turn
 - Updated board and score display after every move
@@ -21,6 +23,8 @@ Terminal-based Dots and Boxes written in C with both human-vs-human and human-vs
 - `game.c`: board state, move validation, scoring, and winner logic
 - `bot.h`: bot interface
 - `bot.c`: easy, medium, and hard bot strategies
+- `network.h`: network session interface and thread-shared state
+- `network.c`: TCP host/join logic, message protocol, and receiver thread
 - `Makefile`: build, debug, Valgrind, and GDB targets
 - `alpine/`: scripts/examples for auto-login and automatic game launch
 
@@ -29,6 +33,44 @@ Terminal-based Dots and Boxes written in C with both human-vs-human and human-vs
 ```sh
 make run
 ```
+
+This project targets Linux for sprint 3 because it uses POSIX sockets and `pthread`.
+
+## Network multiplayer
+
+Start the host on one machine:
+
+```sh
+./dots_boxes
+```
+
+Choose `3` and enter a port such as `5000`.
+
+Start the client on the second machine:
+
+```sh
+./dots_boxes
+```
+
+Choose `4`, enter the same port, then enter the host machine IP address.
+
+Protocol notes:
+
+- Host is always Player `A`
+- Client is always Player `B`
+- Each side keeps its own deterministic board state
+- Moves are exchanged as line-based TCP messages such as `MOVE 0 1 2`
+
+## Multithreading and locks
+
+The networking layer uses one receiver thread per session:
+
+- The main thread handles menus, turn logic, rendering, and local input
+- The receiver thread blocks on `recv()` and parses remote messages
+- `pthread_mutex_t` protects the shared move queue and disconnect flags
+- `pthread_cond_t` wakes the main thread when a remote move arrives or the peer disconnects
+
+This satisfies the sprint requirement to apply multithreading and locks to one part of the project.
 
 ## Debugging
 
@@ -48,6 +90,14 @@ Run under GDB:
 
 ```sh
 make gdb
+```
+
+Recommended validation for sprint 3:
+
+```sh
+make debug
+valgrind --leak-check=full --show-leak-kinds=all ./dots_boxes
+gdb ./dots_boxes
 ```
 
 ## Bot strategy
@@ -112,5 +162,7 @@ make
 sudo cp dots_boxes /opt/dots-boxes/dots_boxes
 sudo reboot
 ```
+
+For the sprint presentation/demo, use two Alpine VMs or two Linux machines on the same network so one instance can host and the other can join.
 
 
