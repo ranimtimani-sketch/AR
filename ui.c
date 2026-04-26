@@ -133,4 +133,86 @@ static int handle_bot_turn(int bot_difficulty, char *player) {
     return 1;
 }
 
+static int handle_human_turn(char *player) {
+    int type;
+    int row;
+    int col;
+    int result;
+    char line[64];
+
+    printf("Enter move (type 0=H,1=V row col, or q to quit): ");
+    fflush(stdout);
+
+    if (!read_line(line, sizeof(line))) {
+        printf("\nGoodbye!\n");
+        return 0;
+    }
+
+    if (is_quit_command(line)) {
+        printf("Goodbye!\n");
+        return 0;
+    }
+
+    if (sscanf(line, "%d %d %d", &type, &row, &col) != 3) {
+        printf("Invalid input! Use: type row col\n");
+        return 1;
+    }
+
+    result = make_move(type, row, col, *player);
+    if (result == -1) {
+        printf("Invalid move! Try again.\n");
+        return 1;
+    }
+
+    if (result == 0) {
+        *player = (*player == 'A') ? 'B' : 'A';
+    }
+
+    return 1;
+}
+
+static int play_local_game(int game_mode, int bot_difficulty) {
+    char player = 'A';
+
+    init_game();
+
+    while (!is_game_over()) {
+        print_board();
+        printf("Player %c turn\n", player);
+
+        if (game_mode == HUMAN_VS_BOT && player == 'B') {
+            handle_bot_turn(bot_difficulty, &player);
+            continue;
+        }
+
+        if (!handle_human_turn(&player)) {
+            return 0;
+        }
+    }
+
+    print_board();
+    print_winner();
+    return 0;
+}
+
+int run_game(void) {
+    int game_mode = select_game_mode();
+    int bot_difficulty = 0;
+
+    if (game_mode == -1) {
+        printf("Goodbye!\n");
+        return 0;
+    }
+
+    if (game_mode == HUMAN_VS_BOT) {
+        bot_difficulty = select_difficulty();
+        if (bot_difficulty == -1) {
+            printf("Goodbye!\n");
+            return 0;
+        }
+    }
+
+    return play_local_game(game_mode, bot_difficulty);
+}
+
 
